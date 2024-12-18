@@ -68,11 +68,10 @@ if docker ps -a | grep -q "$CONTAINER_NAME"; then
     docker rm -f "$CONTAINER_NAME"
 fi
 
-# Ejecutar el contenedor con el comando 'tail -f /dev/null'
+# Con tail -f /dev/null conseguimos que el contenedor esté siempre en ejecución.
 echo -e "${GREEN}Iniciando el contenedor...${RESET}"
 CONTAINER_ID=$(docker run --network=host --name "$CONTAINER_NAME" -d maalfer/bountypentest:latest tail -f /dev/null) # Usamos --network=host para que la máquina atacante use las mismas interfaces de red. De esta forma, conseguimos una compatibilidad total con cualquier máquina que estamos atacando.
 
-# Mostrar el mensaje con el comando para acceder al contenedor
 echo -e "${CYAN}El contenedor está en ejecución.\n${RESET}"
 
 echo -e "${WHITE_BOLD}Para lanzar la máquina, ejecuta el siguiente comando:${RESET}"
