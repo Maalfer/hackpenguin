@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Nombre del contenedor
 CONTAINER_NAME="bountypentest_container"
 
 # Colores fosforitos
@@ -12,7 +11,7 @@ MAGENTA='\033[1;35m'
 WHITE_BOLD='\033[1;37m'
 RESET='\033[0m'
 
-# Función para mostrar el menú de ayuda
+# Menú de ayuda al poner --help
 show_help() {
     echo -e "${WHITE_BOLD}Uso del script:${RESET}"
     echo -e "${GREEN}  ./script.sh${RESET}          - Ejecuta el script para iniciar un contenedor BountyPentest."
@@ -30,7 +29,7 @@ show_help() {
     exit 0
 }
 
-# Función para limpiar todos los contenedores y la imagen maalfer/bountypentest:latest
+# Función para limpiar todos los contenedores y la imagen maalfer/bountypentest:latest al poner el parámetro --clean
 clean_system() {
     echo -e "${RED}Limpiando todos los contenedores asociados a 'maalfer/bountypentest:latest'...${RESET}"
     docker ps -a --filter "ancestor=maalfer/bountypentest:latest" --format "{{.ID}}" | xargs -r docker rm -f
@@ -47,7 +46,6 @@ elif [[ "$1" == "--clean" ]]; then
     clean_system
 fi
 
-# Función para limpiar el contenedor al salir
 cleanup() {
     echo -e "${RED}Deteniendo y eliminando el contenedor...${RESET}"
     docker stop "$CONTAINER_NAME" &> /dev/null
@@ -56,7 +54,6 @@ cleanup() {
     exit
 }
 
-# Capturar Ctrl+C
 trap cleanup SIGINT
 
 # Comprobar si la imagen 'maalfer/bountypentest:latest' existe
@@ -73,7 +70,7 @@ fi
 
 # Ejecutar el contenedor con el comando 'tail -f /dev/null'
 echo -e "${GREEN}Iniciando el contenedor...${RESET}"
-CONTAINER_ID=$(docker run --name "$CONTAINER_NAME" -d maalfer/bountypentest:latest tail -f /dev/null)
+CONTAINER_ID=$(docker run --network=host --name "$CONTAINER_NAME" -d maalfer/bountypentest:latest tail -f /dev/null) # Usamos --network=host para que la máquina atacante use las mismas interfaces de red. De esta forma, conseguimos una compatibilidad total con cualquier máquina que estamos atacando.
 
 # Mostrar el mensaje con el comando para acceder al contenedor
 echo -e "${CYAN}El contenedor está en ejecución.\n${RESET}"
