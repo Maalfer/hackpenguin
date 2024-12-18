@@ -1,5 +1,10 @@
 El objetivo de este proyecto es proporcionar un entorno dockerizado de Kali Linux con sus herramientas de hacking preconfiguradas, que se pueda desplegar automáticamente en el sistema y utilizar como máquina atacante. Para simplificar su gestión, se emplea un script en Bash que automatiza todo el proceso, eliminando la necesidad de poseer conocimientos previos sobre Docker.
 
+El script utiliza la siguiente imagen de DockerHub para automatizar su despliegue
+
+![image](https://github.com/user-attachments/assets/42830777-b9c9-4da0-8590-a7c52c712265)
+
+
 ## PASO 1 - Ejecutar el script hackpenguin.sh
 
 Una vez ejecutado el script, se encargará de importar la máquina atacante en forma de imagen de docker, donde se nos mostrará por pantalla el comando que debemos de insertar para entrar dentro de dicha máquina atacante:
