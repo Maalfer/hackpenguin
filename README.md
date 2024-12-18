@@ -4,6 +4,10 @@ El objetivo de este proyecto es proporcionar un entorno dockerizado de Kali Linu
 
 Una vez ejecutado el script, se encargará de importar la máquina atacante en forma de imagen de docker, donde se nos mostrará por pantalla el comando que debemos de insertar para entrar dentro de dicha máquina atacante:
 
+```
+sudo bash hackpenguin.sh
+```
+
 ![image](https://github.com/user-attachments/assets/f3517403-9a03-42e0-befe-e93496179954)
 
 ## PASO 2 - Ingresar a la Máquina Atacante
