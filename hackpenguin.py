@@ -72,10 +72,6 @@ def cleanup():
     docker_command(["rm", CONTAINER_NAME])
     print_colored("Contenedor eliminado.", "RED")
     
-    # Eliminar la imagen
-    print_colored(f"Eliminando la imagen {IMAGE_NAME}...", "RED")
-    docker_command(["rmi", IMAGE_NAME])
-    print_colored(f"Imagen {IMAGE_NAME} eliminada.", "RED")
     sys.exit()
 
 def get_dockerhub_image_date():
