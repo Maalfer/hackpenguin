@@ -5,15 +5,17 @@ import time
 import sys
 import platform
 
-
 CONTAINER_NAME = "bountypentest_container"
 IMAGE_NAME = "maalfer/bountypentest:latest"
 
-def print_colored(message, color):
+# Función para habilitar colores en Windows (a partir de Windows 10, las terminales soportan ANSI por defecto)
+def enable_windows_ansi():
     if platform.system() == "Windows":
-        print(message)  # En Windows, los colores pueden no funcionar de manera nativa.
-        return
+        # Intentamos activar el soporte de colores ANSI en Windows
+        import os
+        os.system('')  # Esto puede ayudar a habilitar el soporte de ANSI en algunas terminales
 
+def print_colored(message, color):
     colors = {
         "RED": '\033[1;31m',
         "GREEN": '\033[1;32m',
@@ -23,7 +25,12 @@ def print_colored(message, color):
         "WHITE_BOLD": '\033[1;37m',
         "RESET": '\033[0m'
     }
-    print(f"{colors[color]}{message}{colors['RESET']}")
+
+    # En Windows, activamos soporte de colores ANSI si es necesario
+    if platform.system() == "Windows":
+        enable_windows_ansi()
+
+    print(f"{colors.get(color, colors['RESET'])}{message}{colors['RESET']}")
 
 def is_windows():
     return platform.system() == "Windows"
