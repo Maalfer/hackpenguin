@@ -3,9 +3,8 @@ import subprocess
 import signal
 import time
 import sys
-import os
 import platform
-import requests
+
 
 CONTAINER_NAME = "bountypentest_container"
 IMAGE_NAME = "maalfer/bountypentest:latest"
@@ -87,27 +86,32 @@ def main():
     # Verificar si la imagen está disponible localmente
     check_image()
 
-    # Eliminar contenedor existente
+    # Eliminar el contenedor si existe
+    print_colored(f"Comprobando si el contenedor {CONTAINER_NAME} ya existe...", "CYAN")
     container_exists = docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
+    
     if container_exists:
         print_colored(f"El contenedor {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
         docker_command(["rm", "-f", CONTAINER_NAME])
-
+    
     # Iniciar el contenedor
-    network_option = "--network=host" if not is_windows() else ""
     print_colored("Iniciando el contenedor...", "GREEN")
+    
+    # Ejecutar el contenedor con un comando de depuración
     container_id = docker_command(
-        ["run", network_option, "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
+        ["run", "--network=host", "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
     ).stdout.strip()
 
-    if container_id:
-        print_colored("El contenedor está en ejecución.\n", "CYAN")
-        print_colored("Para lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
-        print_colored(f"docker exec -it {CONTAINER_NAME} bash\n", "GREEN")
-        print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "YELLOW")
-    else:
-        print_colored("Error al iniciar el contenedor.", "RED")
+    if not container_id:
+        print_colored("Error al iniciar el contenedor. Verificando detalles...", "RED")
+        logs_result = docker_command(["logs", CONTAINER_NAME])
+        print_colored(logs_result.stdout, "CYAN")
         sys.exit(1)
+
+    print_colored(f"Contenedor {CONTAINER_NAME} en ejecución con ID {container_id}.", "CYAN")
+    print_colored("Para lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
+    print_colored(f"docker exec -it {CONTAINER_NAME} bash\n", "GREEN")
+    print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "YELLOW")
 
     while True:
         time.sleep(1)
