@@ -3,11 +3,18 @@ import subprocess
 import signal
 import time
 import sys
+import os
+import platform
 import requests
 
 CONTAINER_NAME = "bountypentest_container"
+IMAGE_NAME = "maalfer/bountypentest:latest"
 
 def print_colored(message, color):
+    if platform.system() == "Windows":
+        print(message)  # En Windows, los colores pueden no funcionar de manera nativa.
+        return
+
     colors = {
         "RED": '\033[1;31m',
         "GREEN": '\033[1;32m',
@@ -19,67 +26,42 @@ def print_colored(message, color):
     }
     print(f"{colors[color]}{message}{colors['RESET']}")
 
-def show_help():
-    print_colored("Uso del script:", "WHITE_BOLD")
-    print_colored("  python script.py", "GREEN")
-    print_colored("  python script.py -h", "GREEN")
-    print_colored("  python script.py --clean", "GREEN")
-    print_colored("  python script.py --update", "GREEN")
-    print_colored("\nDescripción:", "WHITE_BOLD")
-    print("  Este script inicia un contenedor Docker basado en la imagen 'maalfer/bountypentest:latest'.")
-    print("  Si la imagen no existe localmente, se descargará automáticamente.")
-    print("  El contenedor permanecerá activo hasta que el usuario lo detenga con Ctrl+C.")
+def is_windows():
+    return platform.system() == "Windows"
 
-def clean_system():
-    print_colored("Limpiando todos los contenedores asociados a 'maalfer/bountypentest:latest'...", "RED")
-    containers = subprocess.run(
-        ["docker", "ps", "-a", "--filter", "ancestor=maalfer/bountypentest:latest", "--format", "{{.ID}}"],
-        capture_output=True, text=True
-    ).stdout.splitlines()
-    if containers:
-        subprocess.run(["docker", "rm", "-f"] + containers)
-    print_colored("Eliminando la imagen 'maalfer/bountypentest:latest'...", "RED")
-    subprocess.run(["docker", "rmi", "maalfer/bountypentest:latest"], stdout=subprocess.DEVNULL)
-    print_colored("Limpieza completa.", "RED")
+def docker_command(cmd):
+    if is_windows():
+        return subprocess.run(["docker"] + cmd, shell=True, capture_output=True, text=True)
+    return subprocess.run(["docker"] + cmd, capture_output=True, text=True)
 
-def check_update():
-    print_colored("Comprobando si hay una nueva versión de la imagen en Docker Hub...", "CYAN")
-    local_created = subprocess.run(
-        ["docker", "images", "--format", "{{.CreatedAt}}", "maalfer/bountypentest:latest"],
-        capture_output=True, text=True
-    ).stdout.strip()
+def check_image():
+    print_colored(f"Comprobando si la imagen {IMAGE_NAME} existe localmente...", "CYAN")
+    result = docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}", IMAGE_NAME])
+    if IMAGE_NAME not in result.stdout:
+        print_colored(f"La imagen {IMAGE_NAME} no se encontró. Descargando...", "YELLOW")
 
-    if not local_created:
-        print_colored("No se encontró una imagen local. Se procederá a descargar la última versión.", "YELLOW")
-        clean_system()
-        subprocess.run(["docker", "pull", "maalfer/bountypentest:latest"])
-        return
+        # Iniciar el proceso de descarga de la imagen y capturar la salida en tiempo real
+        pull_result = subprocess.Popen(["docker", "pull", IMAGE_NAME], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    try:
-        response = requests.get("https://hub.docker.com/v2/repositories/maalfer/bountypentest/tags/latest/")
-        response.raise_for_status()
-        remote_created = response.json().get("last_updated", "").split("T")[0]
-    except Exception as e:
-        print_colored(f"Error al comprobar la actualización: {e}", "RED")
-        return
+        # Leer y mostrar la salida de manera continua
+        for line in pull_result.stdout:
+            print(line.strip())  # Imprime la salida del proceso
 
-    print_colored("Comparando fechas locales y remotas...", "CYAN")
-    if remote_created > local_created:
-        print_colored("Hay una nueva versión de la imagen disponible en Docker Hub.", "YELLOW")
-        update = input("¿Deseas actualizar a la última versión? (s/n): ").strip().lower()
-        if update == 's':
-            clean_system()
-            print_colored("Descargando la última versión de la imagen...", "CYAN")
-            subprocess.run(["docker", "pull", "maalfer/bountypentest:latest"])
+        pull_result.stdout.close()
+        pull_result.wait()
+
+        if pull_result.returncode == 0:
+            print_colored(f"Imagen {IMAGE_NAME} descargada exitosamente.", "GREEN")
         else:
-            print_colored("Actualización cancelada.", "CYAN")
+            print_colored(f"Error al descargar la imagen {IMAGE_NAME}.", "RED")
+            sys.exit(1)
     else:
-        print_colored("La imagen local está actualizada.", "GREEN")
+        print_colored(f"La imagen {IMAGE_NAME} ya está disponible localmente.", "GREEN")
 
 def cleanup():
     print_colored("Deteniendo y eliminando el contenedor...", "RED")
-    subprocess.run(["docker", "stop", CONTAINER_NAME], stdout=subprocess.DEVNULL)
-    subprocess.run(["docker", "rm", CONTAINER_NAME], stdout=subprocess.DEVNULL)
+    docker_command(["stop", CONTAINER_NAME])
+    docker_command(["rm", CONTAINER_NAME])
     print_colored("Contenedor eliminado. Saliendo.", "RED")
     sys.exit()
 
@@ -90,43 +72,42 @@ def main():
     args = parser.parse_args()
 
     if args.clean:
-        clean_system()
+        print_colored("Limpiando el sistema...", "RED")
+        docker_command(["rm", "-f", CONTAINER_NAME])
+        docker_command(["rmi", IMAGE_NAME])
+        print_colored("Sistema limpio.", "RED")
         sys.exit()
 
     if args.update:
-        check_update()
+        print_colored("La funcionalidad de actualización aún no está implementada.", "CYAN")
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
 
-    image_exists = subprocess.run(
-        ["docker", "images", "maalfer/bountypentest:latest"],
-        capture_output=True, text=True
-    ).stdout
+    # Verificar si la imagen está disponible localmente
+    check_image()
 
-    if not image_exists:
-        print_colored("La imagen maalfer/bountypentest:latest no se encontró. Descargando...", "YELLOW")
-        subprocess.run(["docker", "pull", "maalfer/bountypentest:latest"])
-
-    container_exists = subprocess.run(
-        ["docker", "ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"],
-        capture_output=True, text=True
-    ).stdout.strip()
-
+    # Eliminar contenedor existente
+    container_exists = docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
     if container_exists:
-        print_colored(f"El contenedor con nombre {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
-        subprocess.run(["docker", "rm", "-f", CONTAINER_NAME])
+        print_colored(f"El contenedor {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
+        docker_command(["rm", "-f", CONTAINER_NAME])
 
+    # Iniciar el contenedor
+    network_option = "--network=host" if not is_windows() else ""
     print_colored("Iniciando el contenedor...", "GREEN")
-    container_id = subprocess.run(
-        ["docker", "run", "--network=host", "--name", CONTAINER_NAME, "-d", "maalfer/bountypentest:latest", "tail", "-f", "/dev/null"],
-        capture_output=True, text=True
+    container_id = docker_command(
+        ["run", network_option, "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
     ).stdout.strip()
 
-    print_colored("El contenedor está en ejecución.\n", "CYAN")
-    print_colored("Para lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
-    print_colored(f"sudo docker exec -it {container_id} bash\n", "GREEN")
-    print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "YELLOW")
+    if container_id:
+        print_colored("El contenedor está en ejecución.\n", "CYAN")
+        print_colored("Para lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
+        print_colored(f"docker exec -it {CONTAINER_NAME} bash\n", "GREEN")
+        print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "YELLOW")
+    else:
+        print_colored("Error al iniciar el contenedor.", "RED")
+        sys.exit(1)
 
     while True:
         time.sleep(1)
