@@ -5,6 +5,7 @@ import time
 import sys
 import platform
 import requests
+import os
 from datetime import datetime
 
 CONTAINER_NAME = "bountypentest_container"
@@ -69,7 +70,12 @@ def cleanup():
     print_colored("Deteniendo y eliminando el contenedor...", "RED")
     docker_command(["stop", CONTAINER_NAME])
     docker_command(["rm", CONTAINER_NAME])
-    print_colored("Contenedor eliminado. Saliendo.", "RED")
+    print_colored("Contenedor eliminado.", "RED")
+    
+    # Eliminar la imagen
+    print_colored(f"Eliminando la imagen {IMAGE_NAME}...", "RED")
+    docker_command(["rmi", IMAGE_NAME])
+    print_colored(f"Imagen {IMAGE_NAME} eliminada.", "RED")
     sys.exit()
 
 def get_dockerhub_image_date():
@@ -93,8 +99,6 @@ def get_local_image_date():
             if repo == IMAGE_NAME:
                 return created_at
     return None
-
-
 
 def compare_dates(dockerhub_date, local_date):
     """Compara las fechas de Docker Hub y la imagen local para ver si hay una nueva versión."""
@@ -142,21 +146,40 @@ def update_image():
     else:
         print_colored("No se pudo obtener la fecha de la imagen local.", "RED")
 
+def save_image():
+    """Función para guardar la imagen localmente usando docker save."""
+    # Obtener el directorio de trabajo actual
+    current_dir = os.getcwd()
+
+    save_path = os.path.join(current_dir, f"{IMAGE_NAME.replace(':', '_').replace('/', '_')}.tar")
+
+    print_colored(f"Guardando la imagen {IMAGE_NAME} en {save_path}...", "CYAN")
+    result = docker_command(["save", "-o", save_path, IMAGE_NAME])
+
+    if result.returncode == 0:
+        print_colored(f"Imagen {IMAGE_NAME} guardada correctamente en {save_path}.", "GREEN")
+    else:
+        print_colored(f"Error al guardar la imagen {IMAGE_NAME}.", "RED")
+        sys.exit(1)
+
 def main():
     parser = argparse.ArgumentParser(description="Script para gestionar contenedor BountyPentest.")
     parser.add_argument("--clean", action="store_true", help="Elimina todos los contenedores y la imagen.")
     parser.add_argument("--update", action="store_true", help="Comprueba si hay una nueva versión de la imagen.")
+    parser.add_argument("--save", action="store_true", help="Guarda la imagen localmente en un archivo tar.")
     args = parser.parse_args()
 
     if args.clean:
         print_colored("Limpiando el sistema...", "RED")
-        docker_command(["rm", "-f", CONTAINER_NAME])
-        docker_command(["rmi", IMAGE_NAME])
-        print_colored("Sistema limpio.", "RED")
+        cleanup()  # Llamamos a la función de limpieza
         sys.exit()
 
     if args.update:
         update_image()
+        sys.exit()
+
+    if args.save:
+        save_image()  # Guardamos la imagen si se pasa el parámetro --save
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
