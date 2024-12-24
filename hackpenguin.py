@@ -4,11 +4,11 @@ import signal
 import time
 import sys
 import platform
+import requests
 
 CONTAINER_NAME = "bountypentest_container"
 IMAGE_NAME = "maalfer/bountypentest:latest"
 
-# Función para habilitar colores en Windows (a partir de Windows 10, las terminales soportan ANSI por defecto)
 def enable_windows_ansi():
     if platform.system() == "Windows":
         # Intentamos activar el soporte de colores ANSI en Windows
