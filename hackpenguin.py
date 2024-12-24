@@ -5,6 +5,7 @@ import time
 import sys
 import platform
 import requests
+from datetime import datetime
 
 CONTAINER_NAME = "bountypentest_container"
 IMAGE_NAME = "maalfer/bountypentest:latest"
@@ -71,6 +72,76 @@ def cleanup():
     print_colored("Contenedor eliminado. Saliendo.", "RED")
     sys.exit()
 
+def get_dockerhub_image_date():
+    """Obtiene la fecha del último push de la imagen desde Docker Hub."""
+    url = f"https://hub.docker.com/v2/repositories/{IMAGE_NAME.split(':')[0]}/tags/{IMAGE_NAME.split(':')[1]}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data["last_updated"]
+    else:
+        print_colored("Error al obtener la fecha de Docker Hub.", "RED")
+        sys.exit(1)
+
+def get_local_image_date():
+    """Obtiene la fecha del último push de la imagen local usando docker images."""
+    result = docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}\t{{.CreatedAt}}", IMAGE_NAME])
+    if IMAGE_NAME in result.stdout:
+        lines = result.stdout.strip().split("\n")
+        for line in lines:
+            repo, created_at = line.split("\t")
+            if repo == IMAGE_NAME:
+                return created_at
+    return None
+
+
+
+def compare_dates(dockerhub_date, local_date):
+    """Compara las fechas de Docker Hub y la imagen local para ver si hay una nueva versión."""
+    # Convierte la fecha de Docker Hub (formato ISO 8601)
+    dockerhub_date = datetime.strptime(dockerhub_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+    
+    # Elimina la parte CET y convierte la fecha local (sin zona horaria)
+    local_date = local_date.split(" ")[0] + " " + local_date.split(" ")[1]  # Elimina la parte "CET"
+    local_date = datetime.strptime(local_date, "%Y-%m-%d %H:%M:%S")  # Solo la parte de la fecha y hora
+
+    # Ajustar la fecha local porque Docker Hub tiene un día más
+    local_date = local_date.replace(day=local_date.day - 1)
+
+    diff = (dockerhub_date - local_date).days
+    return diff
+
+def update_image():
+    """Función para manejar la actualización de la imagen."""
+    print_colored("Comprobando si hay una nueva versión de la imagen...", "CYAN")
+
+    # Obtener las fechas de Docker Hub y de la imagen local
+    dockerhub_date = get_dockerhub_image_date()
+    local_date = get_local_image_date()
+
+    if local_date:
+        print_colored(f"Fecha de la imagen local: {local_date}", "GREEN")
+        print_colored(f"Fecha de la imagen en Docker Hub: {dockerhub_date}", "GREEN")
+
+        # Comparar las fechas
+        date_diff = compare_dates(dockerhub_date, local_date)
+        print_colored(f"Diferencia de días: {date_diff} días", "CYAN")
+
+        if date_diff > 2:
+            update = input("Hay una versión más reciente de la imagen. ¿Quieres actualizar? (s/n): ")
+            if update.lower() == 's':
+                # Limpiar imagen y contenedores
+                cleanup()
+                # Descargar la nueva imagen
+                check_image()
+                print_colored("Imagen actualizada con éxito.", "GREEN")
+            else:
+                print_colored("No se realizará la actualización.", "YELLOW")
+        else:
+            print_colored("No hay una actualización disponible.", "GREEN")
+    else:
+        print_colored("No se pudo obtener la fecha de la imagen local.", "RED")
+
 def main():
     parser = argparse.ArgumentParser(description="Script para gestionar contenedor BountyPentest.")
     parser.add_argument("--clean", action="store_true", help="Elimina todos los contenedores y la imagen.")
@@ -85,7 +156,7 @@ def main():
         sys.exit()
 
     if args.update:
-        print_colored("La funcionalidad de actualización aún no está implementada.", "CYAN")
+        update_image()
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
@@ -96,14 +167,14 @@ def main():
     # Eliminar el contenedor si existe
     print_colored(f"Comprobando si el contenedor {CONTAINER_NAME} ya existe...", "CYAN")
     container_exists = docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
-    
+
     if container_exists:
         print_colored(f"El contenedor {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
         docker_command(["rm", "-f", CONTAINER_NAME])
-    
+
     # Iniciar el contenedor
     print_colored("Iniciando el contenedor...", "GREEN")
-    
+
     # Ejecutar el contenedor con un comando de depuración
     container_id = docker_command(
         ["run", "--network=host", "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
