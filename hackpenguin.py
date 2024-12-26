@@ -219,7 +219,7 @@ def main():
 
     # Ejecutar el contenedor con un comando de depuración
     container_id = docker_command(
-        ["run", "--network=host", "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
+        ["run", "--network=host", "--privileged", "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
     ).stdout.strip()
 
     if not container_id:
