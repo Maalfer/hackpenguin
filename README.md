@@ -38,8 +38,11 @@ Una vez hayamos terminado de usar la máquina atacante, podemos presionar contro
 
 Si deseamos hacer una limpieza total y eliminar tanto el contenedor como la imagen de la máquina atacante, podemos usar el script con el parámetro --clean:
 ```
-sudo bash hackpenguin.py --clean
+sudo python3 hackpenguin.py --clean
 ```
+
+![image](https://github.com/user-attachments/assets/da03612b-351a-4000-aaa7-359bd84c6814)
+
 
 -------------------------------------
 
@@ -47,5 +50,6 @@ sudo bash hackpenguin.py --clean
 
 El script cuenta con un menú de ayuda para guiar al usuario con su uso:
 
-![image](https://github.com/user-attachments/assets/b26bcd8d-c2bb-4f55-bc7a-7d65ff458249)
+![image](https://github.com/user-attachments/assets/a9025b6a-4e8e-4e88-a5ef-f1163fc9bf5a)
+
 
