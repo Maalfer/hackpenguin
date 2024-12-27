@@ -74,6 +74,15 @@ def cleanup():
     
     sys.exit()
 
+def cleanup_all():
+    print_colored("Deteniendo y eliminando el contenedor e imagen...", "RED")
+    docker_command(["stop", CONTAINER_NAME])
+    docker_command(["rm", CONTAINER_NAME])
+    docker_command(["rmi", IMAGE_NAME])
+    print_colored("Contenedor e imagen eliminado.", "RED")
+    
+    sys.exit()
+
 def get_dockerhub_image_date():
     """Obtiene la fecha del último push de la imagen desde Docker Hub."""
     url = f"https://hub.docker.com/v2/repositories/{IMAGE_NAME.split(':')[0]}/tags/{IMAGE_NAME.split(':')[1]}"
@@ -186,7 +195,7 @@ def main():
 
     if args.clean:
         print_colored("Limpiando el sistema...", "RED")
-        cleanup()  # Llamamos a la función de limpieza
+        cleanup_all()  # Llamamos a la función de limpieza total para eliminar todo
         sys.exit()
 
     if args.update:
