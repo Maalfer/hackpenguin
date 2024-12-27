@@ -8,8 +8,8 @@ import requests
 import os
 from datetime import datetime
 
-CONTAINER_NAME = "bountypentest_container"
-IMAGE_NAME = "maalfer/bountypentest:latest"
+CONTAINER_NAME = "hackpenguin_container"
+IMAGE_NAME = "maalfer/hackpenguin:latest"
 
 def enable_windows_ansi():
     if platform.system() == "Windows":
@@ -161,7 +161,7 @@ def save_image():
 def load_image():
     """Función para cargar la imagen desde un archivo tar en el directorio actual."""
     current_dir = os.getcwd()
-    tar_file = os.path.join(current_dir, "maalfer_bountypentest_latest.tar")
+    tar_file = os.path.join(current_dir, "maalfer_hackpenguin_latest.tar")
 
     if os.path.exists(tar_file):
         print_colored(f"Cargando la imagen desde {tar_file}...", "CYAN")
@@ -177,11 +177,11 @@ def load_image():
         sys.exit(1)
 
 def main():
-    parser = argparse.ArgumentParser(description="Script para gestionar contenedor BountyPentest.")
+    parser = argparse.ArgumentParser(description="Script para gestionar contenedor hackpenguin.")
     parser.add_argument("--clean", action="store_true", help="Elimina todos los contenedores y la imagen.")
     parser.add_argument("--update", action="store_true", help="Comprueba si hay una nueva versión de la imagen.")
     parser.add_argument("--save", action="store_true", help="Guarda la imagen localmente en un archivo tar.")
-    parser.add_argument("--load", action="store_true", help="Carga la imagen desde el archivo maalfer_bountypentest_latest.tar.")
+    parser.add_argument("--load", action="store_true", help="Carga la imagen desde el archivo maalfer_hackpenguin_latest.tar.")
     args = parser.parse_args()
 
     if args.clean:
