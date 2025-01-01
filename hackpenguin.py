@@ -13,9 +13,8 @@ IMAGE_NAME = "maalfer/hackpenguin:latest"
 
 def enable_windows_ansi():
     if platform.system() == "Windows":
-        # Intentamos activar el soporte de colores ANSI en Windows
         import os
-        os.system('')  # Esto puede ayudar a habilitar el soporte de ANSI en algunas terminales
+        os.system('')
 
 def print_colored(message, color):
     colors = {
@@ -28,7 +27,6 @@ def print_colored(message, color):
         "RESET": '\033[0m'
     }
 
-    # En Windows, activamos soporte de colores ANSI si es necesario
     if platform.system() == "Windows":
         enable_windows_ansi()
 
@@ -47,17 +45,11 @@ def check_image():
     result = docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}", IMAGE_NAME])
     if IMAGE_NAME not in result.stdout:
         print_colored(f"La imagen {IMAGE_NAME} no se encontró. Descargando...", "YELLOW")
-
-        # Iniciar el proceso de descarga de la imagen y capturar la salida en tiempo real
         pull_result = subprocess.Popen(["docker", "pull", IMAGE_NAME], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-        # Leer y mostrar la salida de manera continua
         for line in pull_result.stdout:
-            print(line.strip())  # Imprime la salida del proceso
-
+            print(line.strip())
         pull_result.stdout.close()
         pull_result.wait()
-
         if pull_result.returncode == 0:
             print_colored(f"Imagen {IMAGE_NAME} descargada exitosamente.", "GREEN")
         else:
@@ -71,7 +63,6 @@ def cleanup():
     docker_command(["stop", CONTAINER_NAME])
     docker_command(["rm", CONTAINER_NAME])
     print_colored("Contenedor eliminado.", "RED")
-    
     sys.exit()
 
 def cleanup_all():
@@ -80,7 +71,6 @@ def cleanup_all():
     docker_command(["rm", CONTAINER_NAME])
     docker_command(["rmi", IMAGE_NAME])
     print_colored("Contenedor e imagen eliminado.", "RED")
-    
     sys.exit()
 
 def get_dockerhub_image_date():
@@ -107,41 +97,29 @@ def get_local_image_date():
 
 def compare_dates(dockerhub_date, local_date):
     """Compara las fechas de Docker Hub y la imagen local para ver si hay una nueva versión."""
-    # Convierte la fecha de Docker Hub (formato ISO 8601)
     dockerhub_date = datetime.strptime(dockerhub_date, "%Y-%m-%dT%H:%M:%S.%fZ")
-    
-    # Elimina la parte CET y convierte la fecha local (sin zona horaria)
-    local_date = local_date.split(" ")[0] + " " + local_date.split(" ")[1]  # Elimina la parte "CET"
-    local_date = datetime.strptime(local_date, "%Y-%m-%d %H:%M:%S")  # Solo la parte de la fecha y hora
-
-    # Ajustar la fecha local porque Docker Hub tiene un día más
+    local_date = local_date.split(" ")[0] + " " + local_date.split(" ")[1]
+    local_date = datetime.strptime(local_date, "%Y-%m-%d %H:%M:%S")
     local_date = local_date.replace(day=local_date.day - 1)
-
     diff = (dockerhub_date - local_date).days
     return diff
 
 def update_image():
     """Función para manejar la actualización de la imagen."""
     print_colored("Comprobando si hay una nueva versión de la imagen...", "CYAN")
-
-    # Obtener las fechas de Docker Hub y de la imagen local
     dockerhub_date = get_dockerhub_image_date()
     local_date = get_local_image_date()
 
     if local_date:
         print_colored(f"Fecha de la imagen local: {local_date}", "GREEN")
         print_colored(f"Fecha de la imagen en Docker Hub: {dockerhub_date}", "GREEN")
-
-        # Comparar las fechas
         date_diff = compare_dates(dockerhub_date, local_date)
         print_colored(f"Diferencia de días: {date_diff} días", "CYAN")
 
         if date_diff > 2:
             update = input("Hay una versión más reciente de la imagen. ¿Quieres actualizar? (s/n): ")
             if update.lower() == 's':
-                # Limpiar imagen y contenedores
                 cleanup()
-                # Descargar la nueva imagen
                 check_image()
                 print_colored("Imagen actualizada con éxito.", "GREEN")
             else:
@@ -153,14 +131,10 @@ def update_image():
 
 def save_image():
     """Función para guardar la imagen localmente usando docker save."""
-    # Obtener el directorio de trabajo actual
     current_dir = os.getcwd()
-
     save_path = os.path.join(current_dir, f"{IMAGE_NAME.replace(':', '_').replace('/', '_')}.tar")
-
     print_colored(f"Guardando la imagen {IMAGE_NAME} en {save_path}...", "CYAN")
     result = docker_command(["save", "-o", save_path, IMAGE_NAME])
-
     if result.returncode == 0:
         print_colored(f"Imagen {IMAGE_NAME} guardada correctamente en {save_path}.", "GREEN")
     else:
@@ -171,11 +145,9 @@ def load_image():
     """Función para cargar la imagen desde un archivo tar en el directorio actual."""
     current_dir = os.getcwd()
     tar_file = os.path.join(current_dir, "maalfer_hackpenguin_latest.tar")
-
     if os.path.exists(tar_file):
         print_colored(f"Cargando la imagen desde {tar_file}...", "CYAN")
         result = docker_command(["load", "-i", tar_file])
-
         if result.returncode == 0:
             print_colored(f"Imagen cargada correctamente desde {tar_file}.", "GREEN")
         else:
@@ -195,7 +167,7 @@ def main():
 
     if args.clean:
         print_colored("Limpiando el sistema...", "RED")
-        cleanup_all()  # Llamamos a la función de limpieza total para eliminar todo
+        cleanup_all()
         sys.exit()
 
     if args.update:
@@ -203,19 +175,15 @@ def main():
         sys.exit()
 
     if args.save:
-        save_image()  # Guardamos la imagen si se pasa el parámetro --save
+        save_image()
         sys.exit()
 
     if args.load:
-        load_image()  # Cargamos la imagen si se pasa el parámetro --load
+        load_image()
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
-
-    # Verificar si la imagen está disponible localmente
     check_image()
-
-    # Eliminar el contenedor si existe
     print_colored(f"Comprobando si el contenedor {CONTAINER_NAME} ya existe...", "CYAN")
     container_exists = docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
 
@@ -223,13 +191,17 @@ def main():
         print_colored(f"El contenedor {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
         docker_command(["rm", "-f", CONTAINER_NAME])
 
-    # Iniciar el contenedor
     print_colored("Iniciando el contenedor...", "GREEN")
-
-    # Ejecutar el contenedor con un comando de depuración
-    container_id = docker_command(
-        ["run", "--network=host", "--privileged", "--name", CONTAINER_NAME, "-d", IMAGE_NAME, "tail", "-f", "/dev/null"]
-    ).stdout.strip()
+    current_dir = os.getcwd()
+    container_id = docker_command([
+        "run", 
+        "--network=host", 
+        "--privileged", 
+        "--name", CONTAINER_NAME, 
+        "-v", f"{current_dir}:/home", 
+        "-d", IMAGE_NAME, 
+        "tail", "-f", "/dev/null"
+    ]).stdout.strip()
 
     if not container_id:
         print_colored("Error al iniciar el contenedor. Verificando detalles...", "RED")
