@@ -102,29 +102,10 @@ def update_image():
                 cleanup()
                 check_image()
 
-def save_image():
-    current_dir = os.getcwd()
-    save_path = os.path.join(current_dir, f"{IMAGE_NAME.replace(':', '_').replace('/', '_')}.tar")
-    result = docker_command(["save", "-o", save_path, IMAGE_NAME])
-    if result.returncode != 0:
-        sys.exit(1)
-
-def load_image():
-    current_dir = os.getcwd()
-    tar_file = os.path.join(current_dir, "maalfer_hackpenguin_latest.tar")
-    if os.path.exists(tar_file):
-        result = docker_command(["load", "-i", tar_file])
-        if result.returncode != 0:
-            sys.exit(1)
-    else:
-        sys.exit(1)
-
 def main():
     parser = argparse.ArgumentParser(description="Script para gestionar contenedor hackpenguin.")
     parser.add_argument("--clean", action="store_true", help="Elimina todos los contenedores y la imagen.")
     parser.add_argument("--update", action="store_true", help="Comprueba si hay una nueva versión de la imagen.")
-    parser.add_argument("--save", action="store_true", help="Guarda la imagen localmente en un archivo tar.")
-    parser.add_argument("--load", action="store_true", help="Carga la imagen desde el archivo maalfer_hackpenguin_latest.tar.")
     args = parser.parse_args()
 
     if args.clean:
@@ -133,14 +114,6 @@ def main():
 
     if args.update:
         update_image()
-        sys.exit()
-
-    if args.save:
-        save_image()
-        sys.exit()
-
-    if args.load:
-        load_image()
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
