@@ -41,32 +41,11 @@ def docker_command(cmd):
     return subprocess.run(["docker"] + cmd, capture_output=True, text=True)
 
 def check_image():
-    print_colored(f"Comprobando si la imagen {IMAGE_NAME} existe localmente...", "CYAN")
-    result = docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}", IMAGE_NAME])
-    if IMAGE_NAME not in result.stdout:
-        print_colored(f"La imagen {IMAGE_NAME} no se encontró. Descargando...", "YELLOW")
-
-        pull_result = subprocess.Popen(["docker", "pull", IMAGE_NAME], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-        for line in pull_result.stdout:
-            print(line.strip())
-
-        pull_result.stdout.close()
-        pull_result.wait()
-
-        if pull_result.returncode == 0:
-            print_colored(f"Imagen {IMAGE_NAME} descargada exitosamente.", "GREEN")
-        else:
-            print_colored(f"Error al descargar la imagen {IMAGE_NAME}.", "RED")
-            sys.exit(1)
-    else:
-        print_colored(f"La imagen {IMAGE_NAME} ya está disponible localmente.", "GREEN")
+    docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}", IMAGE_NAME])
 
 def cleanup():
-    print_colored("Deteniendo y eliminando el contenedor...", "RED")
     docker_command(["stop", CONTAINER_NAME])
     docker_command(["rm", CONTAINER_NAME])
-    print_colored("Contenedor eliminado.", "RED")
     sys.exit()
 
 def main():
@@ -75,7 +54,6 @@ def main():
     args = parser.parse_args()
 
     if args.clean:
-        print_colored("Limpiando el sistema...", "RED")
         cleanup()
         sys.exit()
 
@@ -83,12 +61,9 @@ def main():
 
     check_image()
 
-    print_colored(f"Comprobando si el contenedor {CONTAINER_NAME} ya existe...", "CYAN")
-    container_exists = docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
+    docker_command(["ps", "-a", "--filter", f"name={CONTAINER_NAME}", "--format", "{{.Names}}"]).stdout.strip()
 
-    if container_exists:
-        print_colored(f"El contenedor {CONTAINER_NAME} ya existe. Eliminándolo...", "MAGENTA")
-        docker_command(["rm", "-f", CONTAINER_NAME])
+    docker_command(["rm", "-f", CONTAINER_NAME])
 
     print_colored("Iniciando el contenedor...", "GREEN")
 
@@ -103,16 +78,9 @@ def main():
         "tail", "-f", "/dev/null"
     ]).stdout.strip()
 
-    if not container_id:
-        print_colored("Error al iniciar el contenedor. Verificando detalles...", "RED")
-        logs_result = docker_command(["logs", CONTAINER_NAME])
-        print_colored(logs_result.stdout, "CYAN")
-        sys.exit(1)
-
-    print_colored(f"Contenedor {CONTAINER_NAME} en ejecución con ID {container_id}.", "CYAN")
-    print_colored("Para lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
+    print_colored("\nPara lanzar la máquina, ejecuta el siguiente comando:", "WHITE_BOLD")
     print_colored(f"docker exec -it {CONTAINER_NAME} bash\n", "GREEN")
-    print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "YELLOW")
+    print_colored("Presiona Ctrl+C para detener y eliminar el contenedor.", "RED")
 
     while True:
         time.sleep(1)
