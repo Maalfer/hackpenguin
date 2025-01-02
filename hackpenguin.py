@@ -7,6 +7,7 @@ import platform
 import requests
 import os
 from datetime import datetime
+import calendar
 
 CONTAINER_NAME = "hackpenguin_container"
 IMAGE_NAME = "maalfer/hackpenguin:latest"
@@ -87,16 +88,48 @@ def compare_dates(dockerhub_date, local_date):
     dockerhub_date = datetime.strptime(dockerhub_date, "%Y-%m-%dT%H:%M:%S.%fZ")
     local_date = local_date.split(" ")[0] + " " + local_date.split(" ")[1]
     local_date = datetime.strptime(local_date, "%Y-%m-%d %H:%M:%S")
-    local_date = local_date.replace(day=local_date.day - 1)
+    
+    # Restar un día de forma segura
+    new_day = local_date.day - 1
+    
+    # Si el nuevo día es menor que 1, ajustamos el mes y el día correctamente
+    if new_day < 1:
+        # Obtener el mes y año de la fecha local
+        year = local_date.year
+        month = local_date.month
+        
+        # Ajustar al último día del mes anterior
+        if month == 1:
+            # Si es enero, retrocedemos al diciembre del año anterior
+            month = 12
+            year -= 1
+        else:
+            month -= 1
+
+        # Obtener el último día del mes anterior
+        last_day_of_previous_month = calendar.monthrange(year, month)[1]
+        new_day = last_day_of_previous_month
+
+        # Crear la nueva fecha
+        local_date = local_date.replace(year=year, month=month, day=new_day)
+    else:
+        # Si no hay problema con el día, simplemente actualizamos la fecha
+        local_date = local_date.replace(day=new_day)
+
+    # Calcular la diferencia en días entre la fecha de DockerHub y la fecha local
     diff = (dockerhub_date - local_date).days
     return diff
 
 def update_image():
     dockerhub_date = get_dockerhub_image_date()
     local_date = get_local_image_date()
+    
     if local_date:
         date_diff = compare_dates(dockerhub_date, local_date)
-        if date_diff > 2:
+        
+        if date_diff < 2:  # Si la diferencia es menor a 2 días
+            print("La imagen está actualizada! Disfruta 🙂")
+        else:
             update = input("Hay una versión más reciente de la imagen. ¿Quieres actualizar? (s/n): ")
             if update.lower() == 's':
                 cleanup()
