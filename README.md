@@ -3,7 +3,7 @@ El objetivo de este proyecto es proporcionar un entorno dockerizado de Kali Linu
 El script utiliza la siguiente imagen de DockerHub para automatizar su despliegue:
 
 ```
-https://hub.docker.com/repository/docker/maalfer/bountypentest/general
+[https://hub.docker.com/repository/docker/maalfer/bountypentest/general](https://hub.docker.com/r/maalfer/hackpenguin)
 ```
 
 ![image](https://github.com/user-attachments/assets/b1509631-99ce-4756-a81b-3ae129fc7847)
