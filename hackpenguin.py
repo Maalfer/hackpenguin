@@ -36,10 +36,27 @@ def print_colored(message, color):
 def is_windows():
     return platform.system() == "Windows"
 
+def is_user_in_docker_group():
+    """Verifica si el usuario pertenece al grupo docker (usualmente 'docker' o 'dockerusers')."""
+    try:
+        # Obtenemos los grupos del usuario actual
+        result = subprocess.run(['groups'], capture_output=True, text=True)
+        groups = result.stdout
+        # Comprobamos si 'docker' o 'dockerusers' está en los grupos del usuario
+        return 'docker' in groups or 'dockerusers' in groups
+    except subprocess.CalledProcessError:
+        return False
+
 def docker_command(cmd):
     if is_windows():
         return subprocess.run(["docker"] + cmd, shell=True, capture_output=True, text=True)
-    return subprocess.run(["docker"] + cmd, capture_output=True, text=True)
+    
+    # Si el usuario está en el grupo docker, no se necesita sudo
+    if is_user_in_docker_group():
+        return subprocess.run(["docker"] + cmd, capture_output=True, text=True)
+    
+    # Si el usuario no está en el grupo docker, usar sudo
+    return subprocess.run(["sudo", "docker"] + cmd, capture_output=True, text=True)
 
 def check_image():
     result = docker_command(["images", "--format", "{{.Repository}}:{{.Tag}}", IMAGE_NAME])
@@ -147,6 +164,18 @@ def main():
 
     if args.update:
         update_image()
+        sys.exit()
+
+    # Verificamos si el usuario pertenece al grupo dockerusers (o docker)
+    if not is_user_in_docker_group():
+        print_colored(
+            "Tu usuario no está en el grupo 'dockerusers'. Para añadirlo, ejecuta el siguiente comando:\n"
+            "sudo usermod -aG docker $USER\n\n"
+            "Luego, cierra sesión y vuelve a iniciarla para que los cambios surtan efecto.\n"
+            "Alternativamente, puedes utilizar 'sudo' antes de ejecutar los comandos de Docker si no deseas añadir tu usuario al grupo.\n\n"
+            "¡Una vez que hayas hecho esto, todo estará listo para usar Docker sin problemas! 😄", 
+            "RED"
+        )
         sys.exit()
 
     signal.signal(signal.SIGINT, lambda sig, frame: cleanup())
