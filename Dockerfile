@@ -19,6 +19,9 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install -v github.com/tomnomnom/anew@latest && \
     go install github.com/lc/gau/v2/cmd/gau@latest
 
+RUN echo 'subfinder -d example.com -silent | gau | katana -silent | waybackurls | grep -Ei "confidential|secret|bak|api|key|auth|token|password|config|credential"' > /opt/bug_bounty_dorks.txt
+RUN echo 'subfinder -d example.com -silent | gau --subs | grep -E "\.js$" | httpx -silent -status-code -content-type | grep "200" | awk '{print $1}' | xargs -I{} curl -s {} | grep -Ei "apiKey|secret|password|token|auth|credentials|config|accessKey"' > /opt/bug_bounty_dorks.txt
+
 RUN apt autoremove -y
 
 CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec zsh"]
