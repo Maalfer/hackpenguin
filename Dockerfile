@@ -16,7 +16,8 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install github.com/projectdiscovery/katana/cmd/katana@latest && \
     go install github.com/tomnomnom/waybackurls@latest && \
     go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest && \
-    go install -v github.com/tomnomnom/anew@latest
+    go install -v github.com/tomnomnom/anew@latest && \
+    go install github.com/lc/gau/v2/cmd/gau@latest
 
 RUN apt autoremove -y
 
