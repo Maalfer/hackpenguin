@@ -21,6 +21,8 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
 
 RUN echo 'subfinder -d example.com -silent | gau | katana -silent | waybackurls | grep -Ei "confidential|secret|bak|api|key|auth|token|password|config|credential"' >> /opt/bug_bounty_dorks.txt
 
+RUN echo 'subfinder -d example.com -silent | gau --subs | grep -Ei "(\?|&)(q|search|id|name|query|redirect|url)=[^&]*" | httpx -silent -status-code -content-type | grep "200" | sort -u' >> /opt/bug_bounty_dorks.txt
+
 RUN apt autoremove -y
 
 CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec zsh"]
