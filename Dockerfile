@@ -1,7 +1,7 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang sqlmap iputils-ping
+    apt install -y curl git nmap net-tools golang sqlmap iputils-ping zsh
 
 RUN echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
@@ -21,4 +21,4 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
 
 RUN apt autoremove -y
 
-CMD source ~/.zshrc
+CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec zsh"]
