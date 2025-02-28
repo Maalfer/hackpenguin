@@ -4,7 +4,7 @@ apt update && apt upgrade -y
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io
+apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra
 
 systemctl start docker && systemctl enable docker
 
