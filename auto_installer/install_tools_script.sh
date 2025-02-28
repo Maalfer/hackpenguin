@@ -4,7 +4,15 @@ apt update && apt upgrade -y
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang sqlmap sqlmap curl flatpak
+apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io
+
+systemctl start docker && systemctl enable docker
+
+docker pull wpscanteam/wpscan
+docker pull metasploitframework/metasploit-framework
+
+echo "alias wpscan='sudo docker run -it --rm wpscanteam/wpscan'" >> ~/.bashrc
+echo "alias msfconsole='sudo docker run -it --rm metasploitframework/metasploit-framework'" >> ~/.bashrc
 
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
