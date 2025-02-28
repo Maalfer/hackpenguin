@@ -26,7 +26,7 @@ go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest && \
 go install -v github.com/tomnomnom/anew@latest && \
 go install github.com/lc/gau/v2/cmd/gau@latest && \
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
-install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 
 echo 'subfinder -d example.com -silent | gau | katana -silent | waybackurls | grep -Ei "confidential|secret|bak|api|key|auth|token|password|config|credential"' >> /opt/bug_bounty_dorks.txt
 echo 'subfinder -d example.com -silent | gau --subs | grep -Ei "(\?|&)(q|search|id|name|query|redirect|url)=[^&]*" | httpx -silent -status-code -content-type | grep "200" | sort -u' >> /opt/bug_bounty_dorks.txt
