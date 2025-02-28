@@ -4,7 +4,7 @@ apt update && apt upgrade -y
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang subfinder sqlmap nuclei sqlmap
+apt install -y curl git nmap net-tools golang subfinder sqlmap nuclei sqlmap curl
 
 echo 'export GOPATH=$HOME/go' >> ~/.bashrc
 echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.bashrc
