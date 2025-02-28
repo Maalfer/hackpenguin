@@ -4,7 +4,7 @@ apt update && apt upgrade -y
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra wget
+apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra wget wfuzz john wireshark arp-scan
 
 wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
 
