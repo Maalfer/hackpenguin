@@ -4,7 +4,9 @@ apt update && apt upgrade -y
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra
+apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra wget
+
+wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt /usr/share/rockyou.txt
 
 systemctl start docker && systemctl enable docker
 
