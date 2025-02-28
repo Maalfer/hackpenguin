@@ -12,7 +12,7 @@ docker pull wpscanteam/wpscan
 docker pull metasploitframework/metasploit-framework
 
 echo "alias wpscan='sudo docker run -it --rm wpscanteam/wpscan'" >> ~/.bashrc
-echo "alias msfconsole='sudo docker run -it --rm metasploitframework/metasploit-framework'" >> ~/.bashrc
+echo "alias msfconsole='sudo docker run -it --network=host --rm metasploitframework/metasploit-framework'" >> ~/.bashrc
 
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
