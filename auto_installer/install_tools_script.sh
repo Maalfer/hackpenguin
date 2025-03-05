@@ -31,6 +31,10 @@ mv nuclei-templates/* /opt/nuclei-templates
 
 rm -r nuclei-templates
 
+git clone https://github.com/danielhidalgo2/JSEXPOSURES.git /opt/JSEXPOSURES
+mv /opt/JSEXPOSURES/jsexposures.py /opt/jsexposures.py
+rm -rf /opt/JSEXPOSURES
+
 go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
 go install github.com/projectdiscovery/katana/cmd/katana@latest && \
 go install github.com/tomnomnom/waybackurls@latest && \
