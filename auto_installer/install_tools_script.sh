@@ -58,7 +58,7 @@ Pin-Priority: 1000
 
 snap remove firefox
 
-apt update && apt install firefox
+apt update && apt install -y firefox
 
 
 echo 'subfinder -d example.com -silent | gau | katana -silent | waybackurls | grep -Ei "confidential|secret|bak|api|key|auth|token|password|config|credential"' >> /opt/bug_bounty_dorks.txt
