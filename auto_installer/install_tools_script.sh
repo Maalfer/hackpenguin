@@ -4,6 +4,7 @@ apt update && apt upgrade -y
 
 snap install enum4linux
 snap install john-the-ripper
+snap install metasploit-framework
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
@@ -16,10 +17,8 @@ mv rockyou.txt /usr/share/
 systemctl start docker && systemctl enable docker
 
 docker pull wpscanteam/wpscan
-docker pull metasploitframework/metasploit-framework
 
 echo "alias wpscan='sudo docker run -it --rm wpscanteam/wpscan'" >> ~/.bashrc
-echo "alias msfconsole='sudo docker run -it --network=host --rm metasploitframework/metasploit-framework'" >> ~/.bashrc
 
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
