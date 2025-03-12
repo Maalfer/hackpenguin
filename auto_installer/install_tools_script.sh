@@ -2,9 +2,11 @@
 echo "Actualizando el sistema..."
 apt update && apt upgrade -y
 
+snap install enum4linux
+
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
-apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra wget wfuzz john wireshark arp-scan nano python3-requests
+apt install -y curl git nmap net-tools golang sqlmap curl flatpak gobuster docker.io hydra wget wfuzz john wireshark arp-scan nano python3-requests smbclient smbmap python3-flask dirb
 
 wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt
 
