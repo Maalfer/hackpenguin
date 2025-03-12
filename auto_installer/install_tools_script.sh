@@ -3,6 +3,7 @@ echo "Actualizando el sistema..."
 apt update && apt upgrade -y
 
 snap install enum4linux
+snap install john-the-ripper
 
 # Instalar dependencias necesarias
 echo "Instalando dependencias..."
