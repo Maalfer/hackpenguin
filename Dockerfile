@@ -30,4 +30,4 @@ RUN echo 'cat alljs.txt | xargs -I {} curl -s {} | grep -oE "http[s]?://[^"]*.s3
 
 RUN apt autoremove -y
 
-CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec zsh"]
+CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc"]
