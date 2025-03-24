@@ -17,7 +17,8 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install github.com/tomnomnom/waybackurls@latest && \
     go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest && \
     go install -v github.com/tomnomnom/anew@latest && \
-    go install github.com/lc/gau/v2/cmd/gau@latest
+    go install github.com/lc/gau/v2/cmd/gau@latest && \
+    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 RUN echo 'subfinder -d example.com -silent | gau | katana -silent | waybackurls | grep -Ei "confidential|secret|bak|api|key|auth|token|password|config|credential"' >> /opt/bug_bounty_dorks.txt
 
