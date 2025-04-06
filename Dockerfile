@@ -1,10 +1,12 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang sqlmap iputils-ping zsh subfinder wpscan metasploit-framework impacket-scripts seclists smbclient smbmap
+    apt install -y curl git nmap net-tools golang wget sqlmap iputils-ping zsh subfinder wpscan metasploit-framework impacket-scripts seclists smbclient smbmap
 
 RUN echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
+
+RUN wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt -O /usr/share/rockyou.txt
 
 RUN mkdir /opt/nuclei-templates
 
