@@ -1,7 +1,7 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang sqlmap iputils-ping zsh subfinder nmap
+    apt install -y curl git nmap net-tools golang sqlmap iputils-ping zsh subfinder wpscan metasploit-framework python3-impacket
 
 RUN echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
