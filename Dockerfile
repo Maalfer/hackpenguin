@@ -1,9 +1,14 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan metasploit-framework impacket-scripts seclists smbclient smbmap
+    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan metasploit-framework impacket-scripts seclists smbclient smbmap python3 python3-pip python3-venv pipx
 
-RUN echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
+RUN pipx ensurepath && \
+    pipx install git+https://github.com/Santitub/WPAT.git && \
+    /bin/bash -c "source ~/.bashrc"
+
+RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
+    echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
 
 RUN wget https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt -O /usr/share/rockyou.txt
