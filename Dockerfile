@@ -35,6 +35,10 @@ RUN echo 'katana -u https://example.com/ -d 5 -jc | grep "\.js$" | tee alljs.txt
 
 RUN echo 'cat alljs.txt | xargs -I {} curl -s {} | grep -oE "http[s]?://[^"]*.s3.amaxonaws.com" | sort -u' >> /opt/finding_aws_buckets.txt
 
+WORKDIR /opt
+
+RUN wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip && unzip ReconSpider.zip 
+
 RUN apt autoremove -y
 
 CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec /bin/zsh"]
