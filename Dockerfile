@@ -38,7 +38,11 @@ RUN echo 'cat alljs.txt | xargs -I {} curl -s {} | grep -oE "http[s]?://[^"]*.s3
 
 WORKDIR /opt
 
-RUN wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip && unzip ReconSpider.zip 
+RUN wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip && unzip ReconSpider.zip  && rm ReconSpider.zip && mv ReconSpider.py reconspider.py
+
+RUN pip3 install scrapy --break-system-packages
+
+WORKDIR /home
 
 RUN apt autoremove -y
 
