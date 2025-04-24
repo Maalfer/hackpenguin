@@ -20,6 +20,7 @@ RUN git clone https://github.com/coffinxp/nuclei-templates.git && \
     rm -r nuclei-templates
 
 RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
+    rm /usr/bin/httpx && \
     go install github.com/projectdiscovery/katana/cmd/katana@latest && \
     go install github.com/tomnomnom/waybackurls@latest && \
     go install -v github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest && \
