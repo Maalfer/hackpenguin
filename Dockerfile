@@ -1,7 +1,7 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan metasploit-framework impacket-scripts seclists smbclient smbmap python3 python3-pip python3-venv pipx
+    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb gobuster wfuzz metasploit-framework impacket-scripts seclists smbclient smbmap python3 python3-pip python3-venv pipx
 
 RUN pipx ensurepath && \
     pipx install git+https://github.com/Santitub/WPAT.git && \
