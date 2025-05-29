@@ -42,6 +42,8 @@ RUN wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/R
 
 RUN pip3 install scrapy --break-system-packages
 
+RUN git clone https://github.com/six2dez/reconftw && cd reconftw && ./install.sh
+
 WORKDIR /home
 
 RUN apt autoremove -y
