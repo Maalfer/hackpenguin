@@ -1,7 +1,7 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb gobuster wfuzz metasploit-framework impacket-scripts seclists smbclient smbmap python3 python3-pip python3-venv pipx
+    apt install -y curl git nmap net-tools hydra golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb gobuster wfuzz metasploit-framework impacket-scripts seclists smbclient smbmap python3 python3-pip python3-venv pipx
 
 RUN pipx ensurepath && \
     pipx install git+https://github.com/Santitub/WPAT.git && \
@@ -37,6 +37,16 @@ RUN echo 'katana -u https://example.com/ -d 5 -jc | grep "\.js$" | tee alljs.txt
 RUN echo 'cat alljs.txt | xargs -I {} curl -s {} | grep -oE "http[s]?://[^"]*.s3.amaxonaws.com" | sort -u' >> /opt/finding_aws_buckets.txt
 
 WORKDIR /opt
+
+RUN git clone https://github.com/s0md3v/XSStrike.git 
+
+WORKDIR /opt/XSStrike 
+
+RUN pip install -r requirements.txt --break-system-packages && chmod +x xsstrike.py && mv * /usr/local/bin/
+
+WORKDIR /opt
+
+RUN rm -r /opt/XSStrike
 
 RUN wget -O ReconSpider.zip https://academy.hackthebox.com/storage/modules/144/ReconSpider.v1.2.zip && unzip ReconSpider.zip  && rm ReconSpider.zip && mv ReconSpider.py reconspider.py
 
