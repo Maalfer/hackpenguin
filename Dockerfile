@@ -42,7 +42,7 @@ RUN git clone https://github.com/s0md3v/XSStrike.git
 
 WORKDIR /opt/XSStrike 
 
-RUN pip install -r requirements.txt --break-system-packages && chmod +x xsstrike.py && mv * /usr/local/bin/
+RUN pip install -r requirements.txt --break-system-packages && chmod +x xsstrike.py && mv xsstrike.py xsstrike && mv * /usr/local/bin/
 
 WORKDIR /opt
 
