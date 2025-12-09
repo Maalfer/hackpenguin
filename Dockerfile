@@ -1,7 +1,7 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog
+    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog python3-aiohttp
 
 RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
     echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
