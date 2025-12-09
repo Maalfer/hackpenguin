@@ -1,17 +1,11 @@
 FROM kalilinux/kali-rolling:latest
 
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools hydra golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb gobuster ffuf seclists python3 python3-pip
+    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog
 
 RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
     echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
-
-RUN mkdir /opt/nuclei-templates
-
-RUN git clone https://github.com/coffinxp/nuclei-templates.git && \
-    mv nuclei-templates/* /opt/nuclei-templates && \
-    rm -r nuclei-templates
 
 RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     ln -s /root/go/bin/httpx /usr/bin/httpx && \
@@ -19,8 +13,6 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     ln -s /root/go/bin/katana /usr/bin/katana && \
     go install github.com/tomnomnom/waybackurls@latest && \
     ln -s /root/go/bin/waybackurls /usr/bin/waybackurls && \
-    go install github.com/projectdiscovery/urlfinder/cmd/urlfinder@latest && \
-    ln -s /root/go/bin/urlfinder /usr/bin/urlfinder && \
     go install github.com/tomnomnom/anew@latest && \
     ln -s /root/go/bin/anew /usr/bin/anew && \
     go install github.com/lc/gau/v2/cmd/gau@latest && \
