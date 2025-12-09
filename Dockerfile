@@ -30,6 +30,10 @@ RUN pip install -r requirements.txt --break-system-packages && chmod +x xsstrike
 
 WORKDIR /opt
 
+RUN git clone https://github.com/Maalfer/domchecker.git
+
+RUN chmod +x domchecker.py && mv domchecker.py domchecker && mv * /usr/local/bin/
+
 RUN rm -r /opt/XSStrike
 
 WORKDIR /home
