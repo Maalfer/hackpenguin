@@ -28,6 +28,8 @@ WORKDIR /opt/XSStrike
 
 RUN pip install -r requirements.txt --break-system-packages && chmod +x xsstrike.py && mv xsstrike.py xsstrike && mv * /usr/local/bin/
 
+RUN rm -r /opt/XSStrike
+
 WORKDIR /opt
 RUN git clone https://github.com/Maalfer/domchecker.git
 
@@ -37,8 +39,6 @@ RUN chmod +x domchecker.py && \
 
 RUN rm -rf /opt/XSStrike && rm -rf /opt/domchecker && \
     apt autoremove -y
-
-RUN rm -r /opt/XSStrike
 
 WORKDIR /home
 
