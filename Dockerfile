@@ -37,7 +37,15 @@ WORKDIR /opt/domchecker
 RUN chmod +x domchecker.py && \
     mv domchecker.py /usr/local/bin/domchecker
 
-RUN rm -rf /opt/XSStrike && rm -rf /opt/domchecker && \
+WORKDIR /opt
+RUN git clone https://github.com/Maalfer/PinguAsset.git
+
+WORKDIR /opt/PinguAsset
+
+RUN chmod +x PinguAsset.py && \
+    mv PinguAsset.py /usr/local/bin/PinguAsset
+
+RUN rm -rf /opt/XSStrike && rm -rf /opt/domchecker && rm -rf /opt/PinguAsset && \
     apt autoremove -y
 
 WORKDIR /home
