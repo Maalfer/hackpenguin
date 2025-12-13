@@ -1,7 +1,8 @@
 FROM kalilinux/kali-rolling:latest
 
+# He añadido 'jq' a esta lista, ya que PinguAsset lo requiere obligatoriamente.
 RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog python3-aiohttp
+    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog python3-aiohttp jq
 
 RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
     echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
@@ -42,8 +43,10 @@ RUN git clone https://github.com/Maalfer/PinguAsset.git
 
 WORKDIR /opt/PinguAsset
 
-RUN chmod +x PinguAsset.py && \
-    mv PinguAsset.py /usr/local/bin/PinguAsset
+RUN chmod +x pinguasset.sh && \
+    sed -i 's|PATTERNS_FILE="patterns.json"|PATTERNS_FILE="/usr/local/bin/patterns.json"|g' pinguasset.sh && \
+    mv patterns.json /usr/local/bin/ && \
+    mv pinguasset.sh /usr/local/bin/PinguAsset
 
 RUN rm -rf /opt/XSStrike && rm -rf /opt/domchecker && rm -rf /opt/PinguAsset && \
     apt autoremove -y
