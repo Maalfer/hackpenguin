@@ -1,6 +1,5 @@
 FROM kalilinux/kali-rolling:latest
 
-# He añadido 'jq' a esta lista, ya que PinguAsset lo requiere obligatoriamente.
 RUN apt update && apt upgrade -y && \
     apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog python3-aiohttp jq
 
