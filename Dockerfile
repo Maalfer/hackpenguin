@@ -23,30 +23,15 @@ RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
     go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
     ln -s /root/go/bin/nuclei /usr/bin/nuclei
 
-# --- Instalación de XSStrike ---
-WORKDIR /opt
-RUN git clone https://github.com/s0md3v/XSStrike.git
-WORKDIR /opt/XSStrike
-RUN pip install -r requirements.txt --break-system-packages && \
-    chmod +x xsstrike.py && \
-    ln -s /opt/XSStrike/xsstrike.py /usr/local/bin/xsstrike
-
 # --- Instalación de DOMChecker ---
 WORKDIR /opt
 RUN git clone https://github.com/Maalfer/domchecker.git
-WORKDIR /opt/domchecker
-RUN sed -i '1i #!/usr/bin/env python3' domchecker.py && \
-    chmod +x domchecker.py && \
-    ln -s /opt/domchecker/domchecker.py /usr/local/bin/domchecker
 
-# --- Instalación de PinguAsset ---
-WORKDIR /opt
-RUN git clone https://github.com/Maalfer/PinguAsset.git
-WORKDIR /opt/PinguAsset
-RUN chmod +x pinguasset.sh && \
-    sed -i 's|PATTERNS_FILE="patterns.json"|PATTERNS_FILE="/usr/local/bin/patterns.json"|g' pinguasset.sh && \
-    mv patterns.json /usr/local/bin/ && \
-    ln -s /opt/PinguAsset/pinguasset.sh /usr/local/bin/PinguAsset
+WORKDIR /opt/domchecker
+RUN pip install --no-cache-dir -r requirements.txt || true
+
+RUN echo '#!/bin/bash\npython3 /opt/domchecker/domchecker.py "$@"' > /usr/local/bin/domchecker && \
+    chmod +x /usr/local/bin/domchecker
 
 RUN apt autoremove -y && apt clean
 
