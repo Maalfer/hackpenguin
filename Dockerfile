@@ -1,39 +1,50 @@
 FROM kalilinux/kali-rolling:latest
 
-# Instalación de dependencias básicas
-RUN apt update && apt upgrade -y && \
-    apt install -y curl git nmap net-tools golang nano wget sqlmap iputils-ping zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip trufflehog python3-aiohttp jq
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 1. Fix de Mirror y Certificados + Instalación de Compiladores (build-essential, gcc)
+RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    apt-get update -o Acquire::https::Verify-Peer=false && \
+    apt-get install -y --no-install-recommends -o Acquire::https::Verify-Peer=false ca-certificates && \
+    apt-get clean
+
+# Añadimos build-essential, gcc y libpcap-dev (necesario para herramientas de red en Go)
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    build-essential gcc git curl wget golang nano net-tools iputils-ping \
+    zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip \
+    trufflehog python3-aiohttp jq libpcap-dev && \
+    apt-get clean
 
 # Configuración de PATH para ZSH
 RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
     echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
     echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
 
-# Instalación de herramientas en Go
+# 2. Instalación de herramientas en Go (CGO_ENABLED=1 es por defecto, pero ahora tenemos GCC)
 RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
-    ln -s /root/go/bin/httpx /usr/bin/httpx && \
+    ln -sf /root/go/bin/httpx /usr/bin/httpx && \
     go install github.com/projectdiscovery/katana/cmd/katana@latest && \
-    ln -s /root/go/bin/katana /usr/bin/katana && \
+    ln -sf /root/go/bin/katana /usr/bin/katana && \
     go install github.com/tomnomnom/waybackurls@latest && \
-    ln -s /root/go/bin/waybackurls /usr/bin/waybackurls && \
+    ln -sf /root/go/bin/waybackurls /usr/bin/waybackurls && \
     go install github.com/tomnomnom/anew@latest && \
-    ln -s /root/go/bin/anew /usr/bin/anew && \
+    ln -sf /root/go/bin/anew /usr/bin/anew && \
     go install github.com/lc/gau/v2/cmd/gau@latest && \
-    ln -s /root/go/bin/gau /usr/bin/gau && \
+    ln -sf /root/go/bin/gau /usr/bin/gau && \
     go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
-    ln -s /root/go/bin/nuclei /usr/bin/nuclei
+    ln -sf /root/go/bin/nuclei /usr/bin/nuclei
 
 # --- Instalación de DOMChecker ---
 WORKDIR /opt
-RUN git clone https://github.com/Maalfer/domchecker.git
-
-WORKDIR /opt/domchecker
-RUN pip install --no-cache-dir -r requirements.txt || true
+RUN git clone https://github.com/Maalfer/domchecker.git && \
+    cd domchecker && \
+    pip install --no-cache-dir -r requirements.txt --break-system-packages || true
 
 RUN echo '#!/bin/bash\npython3 /opt/domchecker/domchecker.py "$@"' > /usr/local/bin/domchecker && \
     chmod +x /usr/local/bin/domchecker
 
-RUN apt autoremove -y && apt clean
+RUN apt-get autoremove -y && apt-get clean
 
 WORKDIR /home
 CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec /bin/zsh"]
