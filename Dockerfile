@@ -1,50 +1,60 @@
 FROM kalilinux/kali-rolling:latest
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive \
+    GOPATH=/root/go \
+    PATH=/root/go/bin:/root/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# 1. Fix de Mirror y Certificados + Instalación de Compiladores (build-essential, gcc)
-RUN echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    apt-get update -o Acquire::https::Verify-Peer=false && \
-    apt-get install -y --no-install-recommends -o Acquire::https::Verify-Peer=false ca-certificates && \
-    apt-get clean
-
-# Añadimos build-essential, gcc y libpcap-dev (necesario para herramientas de red en Go)
-RUN apt-get update && apt-get upgrade -y && \
+# Paquetes APT en una sola capa: actualizar índices, instalar, limpiar.
+# No tocamos /etc/apt/sources.list para evitar duplicar la fuente que ya trae
+# /etc/apt/sources.list.d/kali.sources en la imagen base.
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    build-essential gcc git curl wget golang nano net-tools iputils-ping \
-    zsh subfinder wpscan whois dirb ffuf seclists python3 python3-pip \
-    trufflehog python3-aiohttp jq libpcap-dev && \
-    apt-get clean
+        ca-certificates \
+        build-essential gcc \
+        git curl wget \
+        golang \
+        nano net-tools iputils-ping \
+        zsh \
+        python3 python3-pip python3-aiohttp \
+        jq libpcap-dev \
+        subfinder wpscan whois dirb ffuf seclists trufflehog && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Configuración de PATH para ZSH
-RUN echo 'export PATH=$PATH:/root/.local/bin' >> ~/.zshrc && \
-    echo 'export GOPATH=$HOME/go' >> ~/.zshrc && \
-    echo 'export PATH=$PATH:$GOPATH/bin' >> ~/.zshrc
+# Variables de entorno globales (cualquier shell login las verá).
+RUN printf '%s\n' \
+        'export GOPATH=/root/go' \
+        'export PATH=$PATH:/root/go/bin:/root/.local/bin' \
+        > /etc/profile.d/go.sh && \
+    chmod +x /etc/profile.d/go.sh
 
-# 2. Instalación de herramientas en Go (CGO_ENABLED=1 es por defecto, pero ahora tenemos GCC)
+# Herramientas Go. Si una falla, paramos el build (sin '|| true').
 RUN go install github.com/projectdiscovery/httpx/cmd/httpx@latest && \
-    ln -sf /root/go/bin/httpx /usr/bin/httpx && \
     go install github.com/projectdiscovery/katana/cmd/katana@latest && \
-    ln -sf /root/go/bin/katana /usr/bin/katana && \
     go install github.com/tomnomnom/waybackurls@latest && \
-    ln -sf /root/go/bin/waybackurls /usr/bin/waybackurls && \
     go install github.com/tomnomnom/anew@latest && \
-    ln -sf /root/go/bin/anew /usr/bin/anew && \
     go install github.com/lc/gau/v2/cmd/gau@latest && \
-    ln -sf /root/go/bin/gau /usr/bin/gau && \
     go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest && \
-    ln -sf /root/go/bin/nuclei /usr/bin/nuclei
+    for bin in httpx katana waybackurls anew gau nuclei; do \
+        ln -sf /root/go/bin/$bin /usr/local/bin/$bin; \
+    done && \
+    rm -rf /root/.cache/go-build /root/go/pkg
 
-# --- Instalación de DOMChecker ---
+# DOMChecker: clonar e instalar deps solo si existe requirements.txt.
 WORKDIR /opt
-RUN git clone https://github.com/Maalfer/domchecker.git && \
-    cd domchecker && \
-    pip install --no-cache-dir -r requirements.txt --break-system-packages || true
+RUN git clone --depth 1 https://github.com/Maalfer/domchecker.git && \
+    if [ -f /opt/domchecker/requirements.txt ]; then \
+        pip install --no-cache-dir --break-system-packages -r /opt/domchecker/requirements.txt; \
+    else \
+        echo "domchecker: sin requirements.txt, salto pip install"; \
+    fi
 
-RUN echo '#!/bin/bash\npython3 /opt/domchecker/domchecker.py "$@"' > /usr/local/bin/domchecker && \
-    chmod +x /usr/local/bin/domchecker
-
-RUN apt-get autoremove -y && apt-get clean
+# Wrapper de DOMChecker. printf en vez de heredoc para no depender de BuildKit.
+RUN printf '#!/bin/bash\nexec python3 /opt/domchecker/domchecker.py "$@"\n' \
+        > /usr/local/bin/domchecker && \
+    chmod +x /usr/local/bin/domchecker && \
+    ls -la /usr/local/bin/domchecker && \
+    cat /usr/local/bin/domchecker
 
 WORKDIR /home
-CMD ["/bin/zsh", "-i", "-c", "source ~/.zshrc && exec /bin/zsh"]
+CMD ["/bin/zsh", "-l"]
